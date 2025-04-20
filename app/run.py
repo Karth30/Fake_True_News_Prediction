@@ -3,7 +3,7 @@ import os
 import pickle
 
 app = Flask(__name__)
-app.secret_key = 'FakeNot'
+app.secret_key = os.urandom(24)  # Secure random secret key
 
 # Load model and vectorizer
 BASE_DIR = os.path.dirname(__file__)
@@ -50,7 +50,7 @@ def dashboard():
 
     # Initialize session history if not already
     if 'history' not in session:
-        session['history'] = []
+        session['history'] = []  # Store past predictions
 
     if request.method == 'POST':
         news_text = request.form['news']
@@ -60,15 +60,30 @@ def dashboard():
         pred = model.predict(vector)[0]
         prediction = "Real" if pred == 1 else "Fake"
 
+        # Debugging: Print the new prediction
+        print(f"Predicted: {prediction}, News: {news_text}")
+
         # Save to session history
         session['history'].append({'text': news_text, 'result': prediction})
 
+        # Debugging: Print the updated session history
+        print(f"Updated Session History: {session['history']}")
+
+        # Ensure session changes are persisted
+        session.modified = True  # This forces Flask to save the session data
+
+    # Extract the labels and values for plotting the trend
     labels = [entry['text'] for entry in session['history']]
     values = [1 if entry['result'].lower() == 'fake' else 0 for entry in session['history']]
     colors = ['rgba(255, 99, 132, 0.5)' if val == 1 else 'rgba(75, 192, 192, 0.5)' for val in values]
 
     real_count = values.count(0)
     fake_count = values.count(1)
+
+    # Debugging: Print the trend data
+    print(f"Labels: {labels}")
+    print(f"Values: {values}")
+    print(f"Colors: {colors}")
 
     return render_template(
         'dashboard.html',
@@ -83,7 +98,7 @@ def dashboard():
 
 @app.route('/logout')
 def logout():
-    session.clear()
+    session.clear()  # Clear session when logging out
     return redirect(url_for('login'))
 
 # For Render deployment
