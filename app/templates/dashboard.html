@@ -47,7 +47,7 @@
         </tbody>
     </table>
 
-    <!-- Chart -->
+    <!-- Pie Chart -->
     <h4 class="mt-4">Prediction Trend</h4>
     <canvas id="trendChart"></canvas>
 </div>
@@ -55,24 +55,28 @@
 <script>
     const ctx = document.getElementById('trendChart').getContext('2d');
     const data = {
-        labels: {{ labels | tojson }},
+        labels: ['Real', 'Fake'],
         datasets: [{
-            label: 'Fake News Detection',
-            data: {{ values | tojson }},
-            backgroundColor: {{ colors | tojson }},
+            label: 'Prediction Distribution',
+            data: [{{ real_count }}, {{ fake_count }}],  // Pass the counts for Real and Fake from Flask
+            backgroundColor: ['rgba(75, 192, 192, 0.5)', 'rgba(255, 99, 132, 0.5)'],
+            hoverBackgroundColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)']
         }]
     };
 
     new Chart(ctx, {
-        type: 'bar',
+        type: 'pie',  // Set chart type to pie
         data: data,
         options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return value == 1 ? 'Fake' : 'Real';
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw + ' entries';
                         }
                     }
                 }
@@ -80,5 +84,6 @@
         }
     });
 </script>
+
 </body>
 </html>
